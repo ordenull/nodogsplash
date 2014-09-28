@@ -237,32 +237,34 @@ main_loop(void)
 		debug(LOG_NOTICE, "Detected gateway %s at %s", config->gw_interface, config->gw_address);
 	}
 
-	/* Initializes the web server */
-	if ((webserver = httpdCreate(config->gw_address, config->gw_port)) == NULL) {
-		debug(LOG_ERR, "Could not create web server: %s", strerror(errno));
-		exit(1);
+	if (config->start_webserver) {
+		/* Initializes the web server */
+		if ((webserver = httpdCreate(config->gw_address, config->webserver_port)) == NULL) {
+			debug(LOG_ERR, "Could not create web server: %s", strerror(errno));
+			exit(1);
+		}
+		debug(LOG_NOTICE, "Created web server on %s:%d", config->gw_address, config->gw_port);
+
+		/* Set web root for server */
+		debug(LOG_DEBUG, "Setting web root: %s",config->webroot);
+		httpdSetFileBase(webserver,config->webroot);
+
+		/* Add images files to server: any file in config->imagesdir can be served */
+		debug(LOG_DEBUG, "Setting images subdir: %s",config->imagesdir);
+		httpdAddWildcardContent(webserver,config->imagesdir,NULL,config->imagesdir);
+
+		/* Add pages files to server: any file in config->pagesdir can be served */
+		debug(LOG_DEBUG, "Setting pages subdir: %s",config->pagesdir);
+		httpdAddWildcardContent(webserver,config->pagesdir,NULL,config->pagesdir);
+
+
+		debug(LOG_DEBUG, "Registering callbacks to web server");
+
+		httpdAddCContent(webserver, "/", "", 0, NULL, http_nodogsplash_callback_index);
+		httpdAddCWildcardContent(webserver, config->authdir, NULL, http_nodogsplash_callback_auth);
+		httpdAddCWildcardContent(webserver, config->denydir, NULL, http_nodogsplash_callback_deny);
+		httpdAddC404Content(webserver, http_nodogsplash_callback_404);
 	}
-	debug(LOG_NOTICE, "Created web server on %s:%d", config->gw_address, config->gw_port);
-
-	/* Set web root for server */
-	debug(LOG_DEBUG, "Setting web root: %s",config->webroot);
-	httpdSetFileBase(webserver,config->webroot);
-
-	/* Add images files to server: any file in config->imagesdir can be served */
-	debug(LOG_DEBUG, "Setting images subdir: %s",config->imagesdir);
-	httpdAddWildcardContent(webserver,config->imagesdir,NULL,config->imagesdir);
-
-	/* Add pages files to server: any file in config->pagesdir can be served */
-	debug(LOG_DEBUG, "Setting pages subdir: %s",config->pagesdir);
-	httpdAddWildcardContent(webserver,config->pagesdir,NULL,config->pagesdir);
-
-
-	debug(LOG_DEBUG, "Registering callbacks to web server");
-
-	httpdAddCContent(webserver, "/", "", 0, NULL, http_nodogsplash_callback_index);
-	httpdAddCWildcardContent(webserver, config->authdir, NULL, http_nodogsplash_callback_auth);
-	httpdAddCWildcardContent(webserver, config->denydir, NULL, http_nodogsplash_callback_deny);
-	httpdAddC404Content(webserver, http_nodogsplash_callback_404);
 
 	/* Reset the firewall (cleans it, in case we are restarting after nodogsplash crash) */
 

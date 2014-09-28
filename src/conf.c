@@ -74,6 +74,8 @@ typedef enum {
 	oGatewayIPRange,
 	oGatewayAddress,
 	oGatewayPort,
+	oStartWebserver,
+	oWebserverPort,
 	oRemoteAuthenticatorAction,
 	oEnablePreAuth,
 	oBinVoucher,
@@ -130,6 +132,8 @@ static const struct {
 	{ "gatewayiprange", oGatewayIPRange },
 	{ "gatewayaddress", oGatewayAddress },
 	{ "gatewayport", oGatewayPort },
+	{ "startwebserver", oStartWebserver },
+	{ "webserverport", oWebserverPort },
 	{ "remoteauthenticatoraction", oRemoteAuthenticatorAction },
 	{ "enablepreauth", oEnablePreAuth },
 	{ "binvoucher", oBinVoucher },
@@ -209,6 +213,8 @@ config_init(void)
 	config.gw_iprange = DEFAULT_GATEWAY_IPRANGE;
 	config.gw_address = NULL;
 	config.gw_port = DEFAULT_GATEWAYPORT;
+	config.start_webserver = 1;
+	config.webserver_port = DEFAULT_GATEWAYPORT;
 	config.remote_auth_action = NULL;
 	config.webroot = DEFAULT_WEBROOT;
 	config.splashpage = DEFAULT_SPLASHPAGE;
@@ -738,6 +744,18 @@ config_read(const char *filename)
 			break;
 		case oGatewayPort:
 			if(sscanf(p1, "%u", &config.gw_port) < 1) {
+				debug(LOG_ERR, "Bad arg %s to option %s on line %d in %s", p1, s, linenum, filename);
+				debug(LOG_ERR, "Exiting...");
+				exit(-1);
+			}
+			break;
+		case oStartWebserver:
+			if (config.start_webserver == -1 && ((value = parse_boolean_value(p1)) != -1)) {
+				config.start_webserver = value;
+			}
+			break;
+		case oWebserverPort:
+			if(sscanf(p1, "%u", &config.webserver_port) < 1) {
 				debug(LOG_ERR, "Bad arg %s to option %s on line %d in %s", p1, s, linenum, filename);
 				debug(LOG_ERR, "Exiting...");
 				exit(-1);
