@@ -149,7 +149,10 @@ typedef struct {
 	char *gw_interface;		/**< @brief Interface we will manage */
 	char *gw_iprange;		/**< @brief IP range on gw_interface we will manage */
 	char *gw_address;		/**< @brief Internal IP address for our web server */
-	unsigned int gw_port;		/**< @brief Port the webserver will run on */
+	int *start_webserver;		/**< @brief Whether or not start the webserver */
+	unsigned int webserver_port;		/**< @brief Port nubmer the webserver will run on */
+	char *gw_address;		/**< @brief Internal IP address for our web server */
+	unsigned int gw_port;		/**< @brief Port where the portal traffic will be forwarded */
 	char *remote_auth_action;	/**< @brief Path for remote auth */
 	char enable_preauth;    /**< @brief enable pre-authentication support */
 	char *bin_voucher;    /**< @brief enable voucher support */
